@@ -8,7 +8,11 @@
         <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
-
+    
+    <PropertyGroup>
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
+    
     <ItemGroup>
       <ProjectReference Include="..\ConsoleKit\ConsoleKit.csproj" />
     </ItemGroup>

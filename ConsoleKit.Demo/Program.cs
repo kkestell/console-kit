@@ -4,44 +4,27 @@ public class Program
 {
     public static void Main()
     {
-        if (!OperatingSystem.IsLinux() && !OperatingSystem.IsMacOS())
-            throw new PlatformNotSupportedException("This program is only supported on Linux and macOS.");
-
-        Termios.TermiosStruct originalTermios = default;
+        using var tty = Tty.Begin();
 
         try
         {
-            originalTermios = Termios.SetRawMode(Termios.StdinFileno);
+            tty.EnableRawMode();
+            tty.DisableEcho();
 
             Mouse.Enable();
             Keyboard.Enable();
 
-            var pollFd = new Termios.Pollfd
-            {
-                FileDescriptor = Termios.StdinFileno,
-                Events = Termios.PollIn
-            };
-
-            var buffer = new byte[32];
             var bytesRead = new List<byte>();
 
             while (true)
             {
-                if (Termios.Poll(ref pollFd, 1, -1) <= 0) 
-                    continue;
+                var ch = Console.ReadKey(intercept: true).KeyChar;
+                bytesRead.Add((byte)ch);
                 
-                bytesRead.Clear();
-
-                while (true)
+                while (Console.KeyAvailable)
                 {
-                    if (Termios.Poll(ref pollFd, 1, 0) <= 0)
-                        break;
-
-                    var count = Termios.Read(Termios.StdinFileno, buffer, buffer.Length);
-                    if (count <= 0)
-                        break;
-
-                    bytesRead.AddRange(buffer.AsSpan(0, count).ToArray());
+                    ch = Console.ReadKey(intercept: true).KeyChar;
+                    bytesRead.Add((byte)ch);
                 }
 
                 if (bytesRead.Count <= 0) 
@@ -68,15 +51,13 @@ public class Program
                 }
 
                 Console.Out.Flush();
+                bytesRead.Clear();
             }
         }
         finally
         {
             Keyboard.Disable();
             Mouse.Disable();
-
-            if (originalTermios.ControlChars != null)
-                Termios.TcSetAttr(Termios.StdinFileno, Termios.TcsaNow, ref originalTermios);
         }
     }
 }
