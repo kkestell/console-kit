@@ -84,9 +84,6 @@ int main()
     fd_set read_fds;
     struct timeval timeout;
 
-    // Buffer for reading input
-    unsigned char buffer[256];
-    int bytes_read;
 
     while (1)
     {
@@ -108,8 +105,11 @@ int main()
 
         if (FD_ISSET(STDIN_FILENO, &read_fds))
         {
+            // Buffer for reading input
+            unsigned char buffer[256];
+            
             // Read a chunk of data
-            bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
+            ssize_t bytes_read = read(STDIN_FILENO, buffer, sizeof(buffer));
 
             if (bytes_read > 0)
             {
